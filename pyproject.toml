@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "SteamAlly"
+version = "0.1.0"
+description = "Non-Steam games manager for Linux."
+authors = [
+    { name = "Vaibhav Prakash"}
+]
+dependencies = [
+  "vdf>=3.0",
+  "click",
+]
+
+
+[tool.pyright]
+include = ["src"]
+executionEnvironments = [
+  { root = "src", pythonVersion = "3.11" }
+]
