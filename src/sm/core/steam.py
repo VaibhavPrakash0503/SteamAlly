@@ -1,12 +1,16 @@
 from pathlib import Path
 from dataclasses import dataclass
 import vdf
+from dataclasses import field
+
+from .data_manager import SteamCache
 
 
 @dataclass
 class SteamInstallation:
     install_type: str  # "native", "flatpak", "snap"
     base_path: Path
+    cache: SteamCache = field(default_factory=SteamCache)
 
     @property
     def compatdata(self) -> Path:
@@ -15,6 +19,11 @@ class SteamInstallation:
 
     @property
     def active_user_id(self) -> str | None:
+        cache_key = f"{self.install_type}_active_user_id"
+
+        if self.cache.has_key(cache_key):
+            return self.cache.get_cache(cache_key)
+
         """Get the most recently active Steam user ID"""
         # Try loginusers.vdf first (primary method)
         loginusers = self.base_path / "config" / "loginusers.vdf"
@@ -23,12 +32,33 @@ class SteamInstallation:
             try:
                 user_id = self._parse_loginusers_vdf(loginusers)
                 if user_id:
+                    self.cache.set_cache(cache_key, user_id)
                     return user_id
             except Exception:
                 pass  # Fall through to fallback
 
         # Fallback: most recently modified userdata directory
-        return self._get_most_recent_user()
+        user_id = self._get_most_recent_user()
+        self.cache.set_cache(cache_key, user_id)
+        return user_id
+
+    @property
+    def get_shortcuts_path(self) -> Path | None:
+        cached_key = f"{self.install_type}_shortcuts_path"
+
+        if self.cache.has_key(cached_key):
+            return self.cache.get_cache(cached_key)
+
+        user_id = self.active_user_id
+        if not user_id:
+            return None
+
+        shortcut: Path = (
+            self.base_path / "userdata" / user_id / "config" / "shortcuts.vdf"
+        )
+
+        self.cache.set_cache(cached_key, shortcut)
+        return shortcut
 
     def _parse_loginusers_vdf(self, vdf_path: Path) -> str | None:
         """Parse loginusers.vdf to find most recent user"""
