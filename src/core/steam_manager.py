@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Dict, List, Optional
 from .steam import get_steam_installations, SteamInstallation
 from .steam_editor import SteamGameEditor
@@ -67,9 +66,7 @@ class SteamManager:
         # Fallback to first available
         return next(iter(self._installations.values()))
 
-    def _get_editor(
-        self, installation_name: Optional[str] = None
-    ) -> Optional[SteamGameEditor]:
+    def _get_editor(self, installation_name: Optional[str] = None) -> Optional[SteamGameEditor]:
         """Get editor for specific installation or primary"""
         if installation_name:
             install = self._installations.get(installation_name)
@@ -79,17 +76,13 @@ class SteamManager:
         if not install:
             return None
 
-        return SteamGameEditor(
-            steam_installation=install, status_callback=self._on_editor_status
-        )
+        return SteamGameEditor(steam_installation=install, status_callback=self._on_editor_status)
 
     def _on_editor_status(self, message: str):
         """Handle status messages from editor"""
         print(f"[Steam Editor] {message}")
 
-    def update_exe(
-        self, game_name: str, new_exe: str, installation: Optional[str] = None
-    ) -> bool:
+    def update_exe(self, game_name: str, new_exe: str, installation: Optional[str] = None) -> bool:
         """Update exe path for a non Steam Game"""
         editor = self._get_editor(installation)
         if not editor:

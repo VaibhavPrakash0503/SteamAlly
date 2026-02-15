@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
-from src.sm.core.steam import SteamInstallation, get_steam_installations
-from src.sm.core.steam_editor import SteamGameEditor
+from src.core.steam import get_steam_installations
+from src.core.steam_editor import SteamGameEditor
 
 
 def test_editor():

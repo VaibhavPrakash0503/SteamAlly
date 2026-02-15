@@ -1,8 +1,8 @@
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from pathlib import Path
-from src.sm.core.steam_manager import SteamManager
-from src.sm.core.steam import SteamInstallation
+from src.core.steam_manager import SteamManager
+from src.core.steam import SteamInstallation
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def mock_installations(mock_steam_installation):
 class TestSteamManagerInit:
     """Test SteamManager initialization"""
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_init_loads_installations(self, mock_get_installations, mock_installations):
         """Test that __init__ loads installations"""
         mock_get_installations.return_value = mock_installations
@@ -54,7 +54,7 @@ class TestSteamManagerInit:
         mock_get_installations.assert_called_once()
         assert manager._installations == mock_installations
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_init_with_no_installations(self, mock_get_installations):
         """Test initialization with no Steam installations found"""
         mock_get_installations.return_value = {}
@@ -68,10 +68,8 @@ class TestSteamManagerInit:
 class TestQueryMethods:
     """Test query methods"""
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_get_available_install_types(
-        self, mock_get_installations, mock_installations
-    ):
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_get_available_install_types(self, mock_get_installations, mock_installations):
         """Test getting available installation types"""
         mock_get_installations.return_value = mock_installations
 
@@ -80,10 +78,8 @@ class TestQueryMethods:
 
         assert set(types) == {"native", "flatpak"}
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_get_installation_existing(
-        self, mock_get_installations, mock_installations
-    ):
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_get_installation_existing(self, mock_get_installations, mock_installations):
         """Test getting an existing installation"""
         mock_get_installations.return_value = mock_installations
 
@@ -92,10 +88,8 @@ class TestQueryMethods:
 
         assert install == mock_installations["native"]
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_get_installation_nonexistent(
-        self, mock_get_installations, mock_installations
-    ):
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_get_installation_nonexistent(self, mock_get_installations, mock_installations):
         """Test getting a non-existent installation returns None"""
         mock_get_installations.return_value = mock_installations
 
@@ -104,7 +98,7 @@ class TestQueryMethods:
 
         assert install is None
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_has_installations_true(self, mock_get_installations, mock_installations):
         """Test has_installations returns True when installations exist"""
         mock_get_installations.return_value = mock_installations
@@ -113,7 +107,7 @@ class TestQueryMethods:
 
         assert manager.has_installations() is True
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_has_installations_false(self, mock_get_installations):
         """Test has_installations returns False when no installations"""
         mock_get_installations.return_value = {}
@@ -126,10 +120,8 @@ class TestQueryMethods:
 class TestPrimaryInstallation:
     """Test primary installation selection"""
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_primary_installation_native_priority(
-        self, mock_get_installations, mock_installations
-    ):
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_primary_installation_native_priority(self, mock_get_installations, mock_installations):
         """Test that native installation has priority"""
         mock_get_installations.return_value = mock_installations
 
@@ -138,7 +130,7 @@ class TestPrimaryInstallation:
 
         assert primary == mock_installations["native"]
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_primary_installation_flatpak_fallback(self, mock_get_installations):
         """Test flatpak is chosen when native not available"""
         flatpak_only = {"flatpak": Mock(spec=SteamInstallation)}
@@ -149,7 +141,7 @@ class TestPrimaryInstallation:
 
         assert primary == flatpak_only["flatpak"]
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_primary_installation_snap_fallback(self, mock_get_installations):
         """Test snap is chosen when native and flatpak not available"""
         snap_only = {"snap": Mock(spec=SteamInstallation)}
@@ -160,7 +152,7 @@ class TestPrimaryInstallation:
 
         assert primary == snap_only["snap"]
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_primary_installation_none(self, mock_get_installations):
         """Test primary installation returns None when no installations"""
         mock_get_installations.return_value = {}
@@ -174,7 +166,7 @@ class TestPrimaryInstallation:
 class TestShortcutMethods:
     """Test shortcut-related methods"""
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_get_shortcuts(self, mock_get_installations, mock_steam_installation):
         """Test getting shortcuts for an installation"""
         mock_get_installations.return_value = {"native": mock_steam_installation}
@@ -186,7 +178,7 @@ class TestShortcutMethods:
         assert shortcuts[0]["name"] == "Test Game"
         mock_steam_installation.get_non_steam_games.assert_called_once()
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_get_shortcuts_nonexistent_install(
         self, mock_get_installations, mock_steam_installation
     ):
@@ -198,7 +190,7 @@ class TestShortcutMethods:
 
         assert shortcuts == []
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_shortcut_prefix(self, mock_get_installations, mock_steam_installation):
         """Test getting shortcut prefix mapping"""
         mock_get_installations.return_value = {"native": mock_steam_installation}
@@ -209,7 +201,7 @@ class TestShortcutMethods:
         assert prefixes == {"Test Game": "/path/to/prefix"}
         mock_steam_installation.get_game_prefix_mapping.assert_called_once()
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_shortcut_prefix_nonexistent_install(
         self, mock_get_installations, mock_steam_installation
     ):
@@ -225,7 +217,7 @@ class TestShortcutMethods:
 class TestUtilityMethods:
     """Test utility methods"""
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_get_steam_root(self, mock_get_installations, mock_steam_installation):
         """Test getting Steam root path"""
         mock_get_installations.return_value = {"native": mock_steam_installation}
@@ -235,10 +227,8 @@ class TestUtilityMethods:
 
         assert root == "/home/user/.steam"
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_get_steam_root_nonexistent(
-        self, mock_get_installations, mock_steam_installation
-    ):
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_get_steam_root_nonexistent(self, mock_get_installations, mock_steam_installation):
         """Test getting Steam root for non-existent installation returns None"""
         mock_get_installations.return_value = {"native": mock_steam_installation}
 
@@ -251,8 +241,8 @@ class TestUtilityMethods:
 class TestEditorOperations:
     """Test editor-related operations"""
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_update_exe_success(
         self, mock_get_installations, mock_editor_class, mock_steam_installation
     ):
@@ -265,15 +255,11 @@ class TestEditorOperations:
         result = manager.update_exe("Test Game", "/new/path/game.exe", "native")
 
         assert result is True
-        mock_editor.update_game_exe.assert_called_once_with(
-            "Test Game", "/new/path/game.exe"
-        )
+        mock_editor.update_game_exe.assert_called_once_with("Test Game", "/new/path/game.exe")
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
-    def test_update_exe_no_installation(
-        self, mock_get_installations, mock_editor_class, capsys
-    ):
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
+    def test_update_exe_no_installation(self, mock_get_installations, mock_editor_class, capsys):
         """Test exe update with no installation available"""
         mock_get_installations.return_value = {}
 
@@ -284,8 +270,8 @@ class TestEditorOperations:
         captured = capsys.readouterr()
         assert "No Steam installation avaiable" in captured.out
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_update_exe_error(
         self, mock_get_installations, mock_editor_class, mock_steam_installation, capsys
     ):
@@ -302,8 +288,8 @@ class TestEditorOperations:
         captured = capsys.readouterr()
         assert "Error updating game exe: Test error" in captured.out
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_update_start_dir_success(
         self, mock_get_installations, mock_editor_class, mock_steam_installation
     ):
@@ -316,12 +302,10 @@ class TestEditorOperations:
         result = manager.update_start_dir("Test Game", "/new/start/dir", "native")
 
         assert result is True
-        mock_editor.update_game_start_dir.assert_called_once_with(
-            "Test Game", "/new/start/dir"
-        )
+        mock_editor.update_game_start_dir.assert_called_once_with("Test Game", "/new/start/dir")
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_update_start_dir_no_installation(
         self, mock_get_installations, mock_editor_class, capsys
     ):
@@ -335,8 +319,8 @@ class TestEditorOperations:
         captured = capsys.readouterr()
         assert "No Steam installation avaiable" in captured.out
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_update_start_dir_error(
         self, mock_get_installations, mock_editor_class, mock_steam_installation, capsys
     ):
@@ -353,8 +337,8 @@ class TestEditorOperations:
         captured = capsys.readouterr()
         assert "Error updating game start dir: Test error" in captured.out
 
-    @patch("src.sm.core.steam_manager.SteamGameEditor")
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.SteamGameEditor")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_editor_with_primary_installation(
         self, mock_get_installations, mock_editor_class, mock_installations
     ):
@@ -364,14 +348,14 @@ class TestEditorOperations:
         mock_editor_class.return_value = mock_editor
 
         manager = SteamManager()
-        manager.update_exe("Test Game", "/new/path.exe")  # No installation specified
+        manager.update_exe("Dispatch", "/new/test.exe")  # No installation specified
 
         # Should use native (primary)
         mock_editor_class.assert_called_once()
         call_kwargs = mock_editor_class.call_args[1]
         assert call_kwargs["steam_installation"] == mock_installations["native"]
 
-    @patch("src.sm.core.steam_manager.get_steam_installations")
+    @patch("src.core.steam_manager.get_steam_installations")
     def test_on_editor_status(self, mock_get_installations, capsys):
         """Test status callback prints message"""
         mock_get_installations.return_value = {}
