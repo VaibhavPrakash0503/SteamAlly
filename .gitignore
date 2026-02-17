@@ -1,4 +1,5 @@
 .envrc
 .venv/
 __pycache__/
-
+.pytest_cache/
+pyrightconfig.json

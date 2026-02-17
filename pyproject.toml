@@ -22,14 +22,3 @@ dev = [
   "pyright",
 ]
 
-[tool.pyright]
-include = ["src"]
-executionEnvironments = [
-  { root = "src", pythonVersion = "3.11" }
-]
-typeCheckingMode = "basic"
-reportMissingImports = true
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
