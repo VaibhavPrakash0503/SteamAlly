@@ -5,8 +5,31 @@ from typing import Optional
 from datetime import datetime, timedelta
 import re
 
-
 from .data_manager import SteamCache
+
+
+class VDFParseError(Exception):
+    """Raised when VDF parsing fails."""
+
+    pass
+
+
+class SteamUserError(Exception):
+    """No active Steam user found."""
+
+    pass
+
+
+class ShortcutsNotFoundError(Exception):
+    """shortcuts.vdf not found."""
+
+    pass
+
+
+class LoginUsersParseError(Exception):
+    """Error parsing loginusers.vdf."""
+
+    pass
 
 
 @dataclass
@@ -22,12 +45,12 @@ class SteamInstallation:
 
     @property
     def active_user_id(self) -> str | None:
+        """Get the most recently active Steam user ID"""
         cache_key = f"{self.install_type}_active_user_id"
 
         if self.cache.has_key(cache_key):
             return self.cache.get_cache(cache_key)
 
-        """Get the most recently active Steam user ID"""
         # Try loginusers.vdf first (primary method)
         loginusers = self.base_path / "config" / "loginusers.vdf"
 
@@ -41,12 +64,14 @@ class SteamInstallation:
                 pass  # Fall through to fallback
 
         # Fallback: most recently modified userdata directory
-        user_id = self._get_most_recent_user()
+        user_id = self.most_recent_user
+        if not user_id:
+            raise SteamUserError("No active Steam user found.")
         self.cache.set_cache(cache_key, user_id)
         return user_id
 
     @property
-    def get_shortcuts_path(self) -> Path | None:
+    def shortcuts_path(self) -> Path | None:
         cached_key = f"{self.install_type}_shortcuts_path"
 
         if self.cache.has_key(cached_key):
@@ -76,11 +101,12 @@ class SteamInstallation:
                     steamid3 = str((int(steamid64) - 76561197960265728) & 0xFFFFFFFF)
                     return steamid3
         except Exception as e:
-            print(f"Error parsing loginusers.vdf: {e}")
+            raise LoginUsersParseError(f"Error parsing loginusers.vdf: {e}")
 
         return None
 
-    def _get_most_recent_user(self) -> str | None:
+    @property
+    def most_recent_user(self) -> str | None:
         """Fallback: Get most recently modified user directory"""
         userdata_path = self.base_path / "userdata"
 
@@ -115,8 +141,7 @@ class SteamInstallation:
         try:
             return self._parse_shortcuts_vdf(shortcuts_file)
         except Exception as e:
-            print(f"Error parsing shortcuts.vdf: {e}")
-            return []
+            raise ShortcutsNotFoundError(f"Error parsing shortcuts.vdf: {e}")
 
     def _parse_shortcuts_vdf(self, vdf_path: Path) -> list[dict]:
         """Parse binary shortcuts.vdf file"""
@@ -132,23 +157,20 @@ class SteamInstallation:
                         "AppName", shortcut_data.get("appname", "Unknown")
                     ),
                     "exe": shortcut_data.get("Exe", shortcut_data.get("exe", "")),
-                    "start_dir": shortcut_data.get(
-                        "StartDir", shortcut_data.get("StartDir", "")
-                    ),
+                    "start_dir": shortcut_data.get("StartDir", ""),
                     "launch_options": shortcut_data.get("LaunchOptions", ""),
-                    "last_played": shortcut_data.get("LastPlayed", 0),
+                    "last_play_time": shortcut_data.get("LastPlayTime", 0),
                 }
                 games.append(game_info)
 
             return games
 
         except Exception as e:
-            print(f"Error parsing shortcuts.vdf with vdf library: {e}")
-            return []
+            raise ShortcutsNotFoundError(f"Error parsing shortcuts.vdf: {e}")
 
     def get_game_prefix_mapping(self) -> dict[str, Optional[Path]]:
         """Get mapping of game names to their Wine prefixes"""
-        shortcuts = self.list_shortcuts()
+        shortcuts = self.get_list_shortcuts()
         mapping = {}
 
         for shortcut in shortcuts:
@@ -158,9 +180,9 @@ class SteamInstallation:
 
         return mapping
 
-    def list_shortcuts(self) -> list[dict]:
+    def get_list_shortcuts(self) -> list[dict]:
         """Parse and return all shortcuts from shortcuts.vdf"""
-        shortcuts_path = self.get_shortcuts_path
+        shortcuts_path = self.shortcuts_path
         if not shortcuts_path:
             return []
 

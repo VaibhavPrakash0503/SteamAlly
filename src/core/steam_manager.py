@@ -66,7 +66,9 @@ class SteamManager:
         # Fallback to first available
         return next(iter(self._installations.values()))
 
-    def _get_editor(self, installation_name: Optional[str] = None) -> Optional[SteamGameEditor]:
+    def _get_editor(
+        self, installation_name: Optional[str] = None
+    ) -> Optional[SteamGameEditor]:
         """Get editor for specific installation or primary"""
         if installation_name:
             install = self._installations.get(installation_name)
@@ -76,25 +78,24 @@ class SteamManager:
         if not install:
             return None
 
-        return SteamGameEditor(steam_installation=install, status_callback=self._on_editor_status)
+        return SteamGameEditor(
+            steam_installation=install, status_callback=self._on_editor_status
+        )
 
     def _on_editor_status(self, message: str):
         """Handle status messages from editor"""
         print(f"[Steam Editor] {message}")
 
-    def update_exe(self, game_name: str, new_exe: str, installation: Optional[str] = None) -> bool:
+    def update_exe(
+        self, game_name: str, new_exe: str, installation: Optional[str] = None
+    ) -> bool:
         """Update exe path for a non Steam Game"""
         editor = self._get_editor(installation)
         if not editor:
-            print("No Steam installation avaiable")
-            return False
+            raise ValueError("No Steam installation available")
 
-        try:
-            editor.update_game_exe(game_name, new_exe)
-            return True
-        except Exception as e:
-            print(f"Error updating game exe: {e}")
-            return False
+        editor.update_game_exe(game_name, new_exe)
+        return True
 
     def update_start_dir(
         self, game_name: str, new_start_dir: str, installation: Optional[str] = None
@@ -102,12 +103,7 @@ class SteamManager:
         """Update start directory for a non Steam Game"""
         editor = self._get_editor(installation)
         if not editor:
-            print("No Steam installation avaiable")
-            return False
+            raise ValueError("No Steam installation available")
 
-        try:
-            editor.update_game_start_dir(game_name, new_start_dir)
-            return True
-        except Exception as e:
-            print(f"Error updating game start dir: {e}")
-            return False
+        editor.update_game_start_dir(game_name, new_start_dir)
+        return True
