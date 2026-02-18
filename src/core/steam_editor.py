@@ -71,9 +71,7 @@ class SteamGameEditor:
                     break
 
             if not game_found:
-                raise GameNotFoundError(
-                    f"Game '{game_name}' not found in shortcuts.vdf"
-                )
+                raise GameNotFoundError(f"Game '{game_name}' not found")
 
             with open(shortcuts_path, "wb") as f:
                 vdf.binary_dump(data, f)
@@ -81,7 +79,9 @@ class SteamGameEditor:
         except (ShortcutsNotFoundError, GameNotFoundError):
             raise
         except Exception as e:
-            raise SteamEditorError(f"Error updating shortcuts.vdf: {e}") from e
+            raise SteamEditorError(
+                f"Error updating {updates.keys()} for {game_name}: {e}"
+            ) from e
 
     def update_game_exe(self, game_name: str, new_exe_path: str) -> None:
         """Update the executable path for a game"""

@@ -78,9 +78,7 @@ class SteamManager:
         if not install:
             return None
 
-        return SteamGameEditor(
-            steam_installation=install, status_callback=self._on_editor_status
-        )
+        return SteamGameEditor(steam_installation=install)
 
     def _on_editor_status(self, message: str):
         """Handle status messages from editor"""
