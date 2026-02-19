@@ -29,7 +29,7 @@ def list():
 
 @cli.command()
 def list_install():
-    """List all detected Steam installations"""
+    """List all detected Steam installations."""
     manager = SteamManager()
     install_types = manager.get_available_install_types()
     if not install_types:
@@ -47,11 +47,11 @@ def list_install():
 
 
 @cli.command()
-@click.argument("game_name")
-@click.argument("exe_path")
-def update_exe(game_name, exe_path):
+def update_exe():
     """Update game executable path."""
     manager = SteamManager()
+    game_name = click.prompt("Game Name", type=str)
+    exe_path = click.prompt("Start Directory", type=str)
     choice = option_install_type(manager)
     if not choice:
         return
@@ -63,11 +63,11 @@ def update_exe(game_name, exe_path):
 
 
 @cli.command()
-@click.argument("game_name")
-@click.argument("start_dir")
-def update_sDir(game_name: str, start_dir: str):
+def update_sDir():
     """Update game start directory."""
     manager = SteamManager()
+    game_name = click.prompt("Game Name", type=str)
+    start_dir = click.prompt("Start Directory", type=str)
     choice = option_install_type(manager)
     if not choice:
         return
