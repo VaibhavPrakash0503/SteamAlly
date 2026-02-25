@@ -14,13 +14,15 @@ def list():
     """Lists all Non Steam games and their prefix."""
 
     manager = SteamManager()
-    choice = option_install_type(manager)
-    if not choice:
+    install_types = manager.get_available_install_types()
+    if not install_types:
+        click.echo("No Steam installations found.")
         return
-    click.echo(f"Listing Non Steam games for installation type: {choice}\n")
-    games_prefix = manager.shortcut_prefix(choice)
-    for game, prefix in games_prefix.items():
-        click.echo(f"{game} -> {prefix}")
+    for install_type in install_types:
+        click.echo(f"Installation Type: {install_type}")
+        games_prefix = manager.shortcut_prefix(install_type)
+        for game, prefix in games_prefix.items():
+            click.echo(f"{game} -> {prefix}")
 
     click.echo(
         "\n\nNOTE: A game must be launched at least once before SteamAlly can find the game."
