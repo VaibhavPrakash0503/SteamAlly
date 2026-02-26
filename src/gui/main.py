@@ -1,8 +1,11 @@
 import gi
 from src.core.steam_manager import SteamManager
+from pathlib import Path
+import os
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, GLib
+gi.require_version("Gio", "2.0")
+from gi.repository import Gtk, Gio
 
 
 class MyApp(Gtk.ApplicationWindow):
@@ -23,7 +26,6 @@ class MyApp(Gtk.ApplicationWindow):
         left_panel = self.create_left_panel()
         left_panel.set_size_request(400, -1)  # Fixed width 400px
         main_box.append(left_panel)
-
         # Separator line between left and right
         separator = Gtk.Separator(orientation=Gtk.Orientation.VERTICAL)
         main_box.append(separator)
@@ -129,12 +131,6 @@ class MyApp(Gtk.ApplicationWindow):
         self.exe_button.set_sensitive(True)
         self.startdir_button.set_sensitive(True)
 
-        self.info_label.set_text(
-            f"Selected: {self.selected_game['name']}\n"
-            f"Steam Type: {self.selected_game['install_type']}\n"
-            f"Prefix: {self.selected_game['prefix']}"
-        )
-
     def create_right_panel(self):
         """right side - options"""
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -148,26 +144,155 @@ class MyApp(Gtk.ApplicationWindow):
         title.add_css_class("title-2")
         box.append(title)
 
-        # Info label (shows selected game)
-        self.info_label = Gtk.Label(label="Select a game from the list")
-        self.info_label.set_wrap(True)
-        self.info_label.set_margin_top(10)
-        self.info_label.set_margin_bottom(20)
-        box.append(self.info_label)
-
         # Change EXE button
         self.exe_button = Gtk.Button(label="Change Game Executable")
         self.exe_button.set_sensitive(False)  # Disabled until game selected
-        # self.exe_button.connect("clicked", self.on_change_exe_clicked)
+        self.exe_button.connect("clicked", self.on_change_exe_clicked)
         box.append(self.exe_button)
 
         # Change Start Dir button
         self.startdir_button = Gtk.Button(label="Change Start Directory")
         self.startdir_button.set_sensitive(False)  # Disabled until game selected
-        # self.startdir_button.connect("clicked", self.on_change_startdir_clicked)
+        self.startdir_button.connect("clicked", self.on_change_startdir_clicked)
         box.append(self.startdir_button)
 
         return box
+
+    def get_base_path(self, install_type):
+        """Get base path for given installation type"""
+        match install_type:
+            case "native":
+                return Path.home() / ".local/share/Steam/steamapps/compatdata"
+            case "flatpak":
+                return (
+                    Path.home()
+                    / ".var/app/com.valvesoftware.Steam/data/Steam/steamapps/compatdata"
+                )
+            case "snap":
+                return (
+                    Path.home()
+                    / "snap/steam/current/.local/share/Steam/steamapps/compatdata"
+                )
+            case _:
+                raise ValueError(f"Unknown installation type: {install_type}")
+
+    def on_change_exe_clicked(self, button):
+        """Change game executable path"""
+
+        base_path = self.get_base_path(self.selected_game["install_type"])
+
+        initial_folder = Gio.File.new_for_path(
+            str(base_path / self.selected_game["prefix"] / "pfx/drive_c")
+        )
+
+        dialog = Gtk.FileDialog.new()
+        dialog.set_title("Select Game Executable")
+        dialog.set_initial_folder(initial_folder)
+
+        # Filter for .exe files
+        filter_exe = Gtk.FileFilter()
+        filter_exe.set_name(".exe")
+        filter_exe.add_pattern("*.exe")
+
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(filter_exe)
+        dialog.set_filters(filters)
+
+        dialog.open(self, None, self.on_exe_selected)
+
+    def on_exe_selected(self, dialog, result):
+        """Handle selected exe file"""
+        try:
+            file = dialog.open_finish(result)
+            path = file.get_path()
+
+            exe_parent_dir = Path(path).parent
+
+            # Call your backend to update
+            self.steam_manager.update_exe(
+                game_name=self.selected_game["name"],
+                new_exe=path,
+                installation=self.selected_game["install_type"],
+            )
+
+            self.steam_manager.update_start_dir(
+                game_name=self.selected_game["name"],
+                new_start_dir=str(exe_parent_dir),
+                installation=self.selected_game["install_type"],
+            )
+
+            self.show_success_dialog(
+                "Update Successful",
+                f"Successfully updated {self.selected_game['name']}\n\n"
+                f"New EXE: {path}\n"
+                f"New Start Dir: {exe_parent_dir}",
+            )
+
+        except Exception as e:
+            if "Dismissed by user" in str(e):
+                return
+
+            # Show error dialog
+            self.show_error_dialog(
+                "Update Failed", f"Failed to update start directory\n\nError: {str(e)}"
+            )
+
+    def on_change_startdir_clicked(self, button):
+        """Change start directory"""
+        base_path = self.get_base_path(self.selected_game["install_type"])
+
+        initial_folder = Gio.File.new_for_path(str(base_path))
+
+        dialog = Gtk.FileDialog.new()
+        dialog.set_title("Select Start Directory")
+        dialog.set_initial_folder(initial_folder)
+
+        dialog.select_folder(self, None, self.on_startdir_selected)
+
+    def on_startdir_selected(self, dialog, result):
+        """Handle selected directory"""
+        try:
+            folder = dialog.select_folder_finish(result)
+            path = folder.get_path()
+
+            # Call your backend to update
+            self.steam_manager.update_start_dir(
+                game_name=self.selected_game["name"],
+                new_start_dir=path,
+                installation=self.selected_game["install_type"],
+            )
+
+            print(f"Updated Start Dir for {self.selected_game['name']} to {path}")
+
+            self.show_success_dialog(
+                "Update Successful",
+                f"Successfully updated start directory for {self.selected_game['name']}\n\n"
+                f"New Start Dir: {path}",
+            )
+
+        except Exception as e:
+            if "Dismissed by user" in str(e):
+                return
+
+            self.show_error_dialog(
+                "Update Failed", f"Failed to update start directory\n\nError: {str(e)}"
+            )
+
+    def show_success_dialog(self, title, message):
+        """Show success dialog to user"""
+        dialog = Gtk.AlertDialog()
+        dialog.set_message(title)
+        dialog.set_detail(message)
+        dialog.set_modal(True)
+        dialog.show(self)
+
+    def show_error_dialog(self, title, message):
+        """Show error dialog to user"""
+        dialog = Gtk.AlertDialog()
+        dialog.set_message(title)
+        dialog.set_detail(message)
+        dialog.set_modal(True)
+        dialog.show(self)
 
 
 def on_activate(app):
