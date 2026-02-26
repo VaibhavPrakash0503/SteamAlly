@@ -3,6 +3,8 @@ from src.core.steam_manager import SteamManager
 from pathlib import Path
 import os
 
+os.environ["GTK_USE_PORTAL"] = "0"
+
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gio", "2.0")
 from gi.repository import Gtk, Gio
