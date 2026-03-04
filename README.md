@@ -16,26 +16,80 @@ SteamAlly solves the tedious problem of manually finding and linking prefix fold
 ## Tech Stack
 
 - Python
-- GTK
+- GTK 4
+- Click (CLI framework)
+- VDF (Valve Data Format parser)
+
+## Prerequisites
+
+Install GTK and system dependencies for your distribution:
+
+**Fedora:**
+```bash
+sudo dnf install python3-gobject gtk4 python3-pip python3-devel
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt install python3-gi gir1.2-gtk-4.0 python3-pip python3-dev
+```
+
+**Arch Linux:**
+```bash
+sudo pacman -S python-gobject gtk4 python-pip base-devel
+```
 
 ## Installation
 
-**Note: This project is currently under development.**
-
-### Build from Source
-
+### From Source
 ```bash
 git clone https://github.com/yourusername/SteamAlly.git
 cd SteamAlly
-# Additional build instructions coming soon
+pip install --user .
 ```
+
+### Using Makefile (recommended)
+```bash
+git clone https://github.com/yourusername/SteamAlly.git
+cd SteamAlly
+make install
+```
+
 ## Usage
 
-Launch the GUI application to:
-1. Add your non-Steam games
-2. Automatically detect
-3. Edit game properties (executable path, start folder, etc.)
-4. Manage your entire non-Steam library from one place
+### GUI Application
+```bash
+steamally-gui
+```
+
+### Command Line Interface
+```bash
+# List all non-Steam games
+steamally list
+
+# List Steam installations
+steamally list-install
+
+# Update game executable
+steamally update-exe
+
+# Update start directory
+steamally update-sDir
+
+# Show help
+steamally --help
+```
+
+# Uninstall
+```bash
+make uninstall
+```
+
+Or manually:
+```bash
+pip uninstall steamally
+rm ~/.local/share/applications/steamally.desktop
+```
 
 ## License
 
