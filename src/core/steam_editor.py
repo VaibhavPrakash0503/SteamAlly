@@ -6,6 +6,7 @@ specifically for managing non-Steam game shortcuts.
 """
 
 import vdf
+import logging
 
 from .steam import SteamInstallation
 
@@ -54,6 +55,7 @@ class SteamGameEditor:
         shortcuts_path = self.steam_installation.shortcuts_path
 
         if not shortcuts_path or not shortcuts_path.exists():
+            logging.error("shortcuts.vdf not found at expected location")
             raise ShortcutsNotFoundError("shortcuts.vdf not found")
 
         try:
@@ -71,14 +73,19 @@ class SteamGameEditor:
                     break
 
             if not game_found:
+                logging.error(f"Game '{game_name}' not found in shortcuts.vdf")
                 raise GameNotFoundError(f"Game '{game_name}' not found")
 
             with open(shortcuts_path, "wb") as f:
                 vdf.binary_dump(data, f)
 
         except (ShortcutsNotFoundError, GameNotFoundError):
+            logging.error(
+                f"Error updating {updates.keys()} for {game_name}: Game not found"
+            )
             raise
         except Exception as e:
+            logging.error(f"Error updating {updates.keys()} for {game_name}: {e}")
             raise SteamEditorError(
                 f"Error updating {updates.keys()} for {game_name}: {e}"
             ) from e
@@ -86,7 +93,9 @@ class SteamGameEditor:
     def update_game_exe(self, game_name: str, new_exe_path: str) -> None:
         """Update the executable path for a game"""
         self._update_game(game_name, {"Exe": new_exe_path})
+        logging.info(f"Updated executable path for '{game_name}' to '{new_exe_path}'")
 
     def update_game_start_dir(self, game_name: str, new_start_dir: str) -> None:
         """Update the start directory for a game"""
         self._update_game(game_name, {"StartDir": new_start_dir})
+        logging.info(f"Updated start directory for '{game_name}' to '{new_start_dir}'")

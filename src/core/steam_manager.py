@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Optional
 from .steam import get_steam_installations, SteamInstallation
 from .steam_editor import SteamGameEditor
@@ -88,6 +89,7 @@ class SteamManager:
         self, game_name: str, new_exe: str, installation: Optional[str] = None
     ) -> bool:
         """Update exe path for a non Steam Game"""
+        logging.info(f"Updating exe for '{game_name}' to '{new_exe}'")
         editor = self._get_editor(installation)
         if not editor:
             raise ValueError("No Steam installation available")
@@ -99,6 +101,7 @@ class SteamManager:
         self, game_name: str, new_start_dir: str, installation: Optional[str] = None
     ) -> bool:
         """Update start directory for a non Steam Game"""
+        logging.info(f"Updating start directory for '{game_name}' to '{new_start_dir}'")
         editor = self._get_editor(installation)
         if not editor:
             raise ValueError("No Steam installation available")

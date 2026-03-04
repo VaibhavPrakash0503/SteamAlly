@@ -4,6 +4,7 @@ import vdf
 from typing import Optional
 from datetime import datetime, timedelta
 import re
+import logging
 
 from .data_manager import SteamCache
 
@@ -66,6 +67,9 @@ class SteamInstallation:
         # Fallback: most recently modified userdata directory
         user_id = self.most_recent_user
         if not user_id:
+            logging.error(
+                f"No active Steam user found for {self.install_type} installation."
+            )
             raise SteamUserError("No active Steam user found.")
         self.cache.set_cache(cache_key, user_id)
         return user_id
@@ -141,6 +145,9 @@ class SteamInstallation:
         try:
             return self._parse_shortcuts_vdf(shortcuts_file)
         except Exception as e:
+            logging.error(
+                f"Error parsing shortcuts.vdf for {self.install_type} installation: {e}"
+            )
             raise ShortcutsNotFoundError(f"Error parsing shortcuts.vdf: {e}")
 
     def _parse_shortcuts_vdf(self, vdf_path: Path) -> list[dict]:
@@ -166,6 +173,9 @@ class SteamInstallation:
             return games
 
         except Exception as e:
+            logging.error(
+                f"Error parsing shortcuts.vdf for {self.install_type} installation: {e}"
+            )
             raise ShortcutsNotFoundError(f"Error parsing shortcuts.vdf: {e}")
 
     def get_game_prefix_mapping(self) -> dict[str, Optional[Path]]:
@@ -285,14 +295,17 @@ def get_steam_installations() -> dict[str, SteamInstallation]:
 
     flatpak_path = Path("~/.var/app/com.valvesoftware.Steam/data/Steam").expanduser()
     if flatpak_path.exists():
+        logging.info(f"Found Flatpak Steam installation at {flatpak_path}")
         installations["flatpak"] = SteamInstallation("flatpak", flatpak_path)
 
     snap_path = Path("~/snap/steam/common/.local/share/Steam").expanduser()
     if snap_path.exists():
+        logging.info(f"Found Snap Steam installation at {snap_path}")
         installations["snap"] = SteamInstallation("snap", snap_path)
 
     native_path = Path("~/.local/share/Steam").expanduser()
     if native_path.exists():
+        logging.info(f"Found Native Steam installation at {native_path}")
         installations["native"] = SteamInstallation("native", native_path)
 
     return installations
