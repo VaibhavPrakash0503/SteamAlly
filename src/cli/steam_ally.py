@@ -128,7 +128,12 @@ def option_install_type(manager: SteamManager) -> Optional[str]:
             return None
 
 
-if __name__ == "__main__":
+def main():
+    """Entry point for the CLI."""
     setup_logging()
     logging.info("Starting Steam Ally CLI")
     cli()
+
+
+if __name__ == "__main__":
+    main()
