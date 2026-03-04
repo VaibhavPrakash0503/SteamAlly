@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SteamAlly
+Comment=Non-Steam games manager for Linux
+Exec=sh -c 'exec "$HOME/.local/bin/steamally-gui"'
+Icon=steamally
+Terminal=false
+Categories=Game;Utility;
+Keywords=steam;games;

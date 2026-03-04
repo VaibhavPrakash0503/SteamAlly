@@ -9,9 +9,11 @@ description = "Non-Steam games manager for Linux."
 authors = [
     {name = "Vaibhav Prakash"}
 ]
+readme = "README.md"
 dependencies = [
   "vdf>=3.0",
-  "click",
+  "click>=8.3",
+  "PyGObject>=3.54",
 ]
 required-python = ">=3.11"
 
@@ -22,3 +24,9 @@ dev = [
   "pyright",
 ]
 
+[project.scripts]
+steamally = "src.cli.steam_ally:main"
+steamally-gui = "src.gui.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
