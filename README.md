@@ -82,6 +82,7 @@ Or manually:
 ```bash
 pip uninstall steamally
 rm ~/.local/share/applications/steamally.desktop
+rm ~/.local/share/icons/hicolor/256x256/apps/steamally.png
 ```
 
 ## License
