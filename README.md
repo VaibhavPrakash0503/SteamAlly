@@ -26,17 +26,17 @@ Install GTK and system dependencies for your distribution:
 
 **Fedora:**
 ```bash
-sudo dnf install python3-gobject gtk4 python3-pip python3-devel
+sudo dnf install python3-gobject gtk4 python3-pip python3-devel make
 ```
 
 **Ubuntu/Debian:**
 ```bash
-sudo apt install python3-gi gir1.2-gtk-4.0 python3-pip python3-dev
+sudo apt install python3-gi gir1.2-gtk-4.0 python3-pip python3-dev make
 ```
 
 **Arch Linux:**
 ```bash
-sudo pacman -S python-gobject gtk4 python-pip base-devel
+sudo pacman -S python-gobject gtk4 python-pip base-devel make
 ```
 
 ## Installation
