@@ -41,14 +41,7 @@ sudo pacman -S python-gobject gtk4 python-pip base-devel make
 
 ## Installation
 
-### From Source
-```bash
-git clone https://github.com/yourusername/SteamAlly.git
-cd SteamAlly
-pip install --user .
-```
-
-### Using Makefile (recommended)
+### Using Makefile
 ```bash
 git clone https://github.com/yourusername/SteamAlly.git
 cd SteamAlly
